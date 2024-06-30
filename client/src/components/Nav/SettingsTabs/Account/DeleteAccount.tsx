@@ -1,23 +1,17 @@
 import React, { useState, useCallback } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogButton,
-  Input,
-} from '~/components/ui';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, Input } from '~/components/ui';
 import { cn, defaultTextProps, removeFocusOutlines } from '~/utils';
 import { useDeleteUserMutation } from '~/data-provider';
 import { Spinner, LockIcon } from '~/components/svg';
 import { useAuthContext } from '~/hooks/AuthContext';
 import { useLocalize } from '~/hooks';
+import DangerButton from '../DangerButton';
 
 const DeleteAccount = ({ disabled = false }: { title?: string; disabled?: boolean }) => {
   const localize = useLocalize();
   const { user, logout } = useAuthContext();
   const { mutate: deleteUser, isLoading: isDeleting } = useDeleteUserMutation({
-    onSuccess: () => logout(),
+    onMutate: () => logout(),
   });
 
   const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
@@ -50,16 +44,19 @@ const DeleteAccount = ({ disabled = false }: { title?: string; disabled?: boolea
       <div className="flex items-center justify-between">
         <span>{localize('com_nav_delete_account')}</span>
         <label>
-          <DialogButton
+          <DangerButton
             id={'delete-user-account'}
             disabled={disabled}
             onClick={onClick}
+            actionTextCode="com_ui_delete"
             className={cn(
-              'btn btn-danger relative border-none bg-red-700 text-white hover:bg-red-800 dark:hover:bg-red-800',
+              'btn relative border-none bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-700',
             )}
-          >
-            {localize('com_ui_delete')}
-          </DialogButton>
+            confirmClear={false}
+            infoTextCode={''}
+            dataTestIdInitial={''}
+            dataTestIdConfirm={''}
+          />
         </label>
       </div>
       <Dialog open={isDialogOpen} onOpenChange={() => setDialogOpen(false)}>
@@ -76,7 +73,6 @@ const DeleteAccount = ({ disabled = false }: { title?: string; disabled?: boolea
             <ul>
               <li>{localize('com_nav_delete_warning')}</li>
               <li>{localize('com_nav_delete_data_info')}</li>
-              <li>{localize('com_nav_delete_help_center')}</li>
             </ul>
           </div>
           <div className="flex-col items-center justify-center">
