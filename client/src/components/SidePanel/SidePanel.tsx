@@ -12,6 +12,7 @@ import { ResizableHandleAlt, ResizablePanel, ResizablePanelGroup } from '~/compo
 import { TooltipProvider, Tooltip } from '~/components/ui/Tooltip';
 import useSideNavLinks from '~/hooks/Nav/useSideNavLinks';
 import { useMediaQuery, useLocalStorage } from '~/hooks';
+import BookmarkPanel from './Bookmarks/BookmarkPanel';
 import NavToggle from '~/components/Nav/NavToggle';
 import { useChatContext } from '~/Providers';
 import Switcher from './Switcher';
@@ -79,8 +80,20 @@ const SidePanel = ({
     localStorage.setItem('fullPanelCollapse', 'true');
     panelRef.current?.collapse();
   }, []);
+  const [showBookmarks, setShowBookmarks] = useState(false);
+  const manageBookmarks = useCallback((e) => {
+    e.preventDefault();
+    setShowBookmarks((prev) => !prev);
+  }, []);
 
-  const Links = useSideNavLinks({ hidePanel, assistants, keyProvided, endpoint, interfaceConfig });
+  const Links = useSideNavLinks({
+    hidePanel,
+    assistants,
+    keyProvided,
+    endpoint,
+    interfaceConfig,
+    manageBookmarks,
+  });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const throttledSaveLayout = useCallback(
@@ -128,6 +141,7 @@ const SidePanel = ({
 
   return (
     <>
+      {showBookmarks && <BookmarkPanel open={showBookmarks} onOpenChange={setShowBookmarks} />}
       <TooltipProvider delayDuration={0}>
         <ResizablePanelGroup
           direction="horizontal"
@@ -184,7 +198,7 @@ const SidePanel = ({
               localStorage.setItem('react-resizable-panels:collapsed', 'true');
             }}
             className={cn(
-              'sidenav hide-scrollbar border-l border-gray-200 bg-white transition-opacity dark:border-gray-800/50 dark:bg-gray-850',
+              'sidenav hide-scrollbar border-l border-border-light bg-surface-primary-alt transition-opacity',
               isCollapsed ? 'min-w-[50px]' : 'min-w-[340px] sm:min-w-[352px]',
               (isSmallScreen && isCollapsed && (minSize === 0 || collapsedSize === 0)) ||
                 fullCollapse
@@ -195,7 +209,7 @@ const SidePanel = ({
             {interfaceConfig.modelSelect && (
               <div
                 className={cn(
-                  'sticky left-0 right-0 top-0 z-[100] flex h-[52px] flex-wrap items-center justify-center bg-white dark:bg-gray-850',
+                  'sticky left-0 right-0 top-0 z-[100] flex h-[52px] flex-wrap items-center justify-center bg-surface-primary-alt',
                   isCollapsed ? 'h-[52px]' : 'px-2',
                 )}
               >
@@ -216,7 +230,7 @@ const SidePanel = ({
         </ResizablePanelGroup>
       </TooltipProvider>
       <div
-        className={`nav-mask${!isCollapsed ? ' active' : ''}`}
+        className={`nav-mask${!isCollapsed ? 'active' : ''}`}
         onClick={() => {
           setIsCollapsed(() => {
             localStorage.setItem('fullPanelCollapse', 'true');

@@ -1,6 +1,7 @@
+import { useCallback, useEffect, useState, useMemo, memo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
-import { useCallback, useEffect, useState, useMemo, memo } from 'react';
+import type { ConversationListResponse } from 'librechat-data-provider';
 import {
   useMediaQuery,
   useAuthContext,
@@ -12,6 +13,7 @@ import {
 import { useConversationsInfiniteQuery } from '~/data-provider';
 import { TooltipProvider, Tooltip } from '~/components/ui';
 import { Conversations } from '~/components/Conversations';
+import BookmarkNav from './Bookmarks/BookmarkNav';
 import { useSearchContext } from '~/Providers';
 import { Spinner } from '~/components/svg';
 import SearchBar from './SearchBar';
@@ -19,7 +21,6 @@ import NavToggle from './NavToggle';
 import NavLinks from './NavLinks';
 import NewChat from './NewChat';
 import { cn } from '~/utils';
-import { ConversationListResponse } from 'librechat-data-provider';
 import store from '~/store';
 
 const Nav = ({ navVisible, setNavVisible }) => {
@@ -42,6 +43,10 @@ const Nav = ({ navVisible, setNavVisible }) => {
 
   useEffect(() => {
     if (isSmallScreen) {
+      const savedNavVisible = localStorage.getItem('navVisible');
+      if (savedNavVisible === null) {
+        toggleNavVisible();
+      }
       setNavWidth('320px');
     } else {
       setNavWidth('260px');
@@ -54,12 +59,21 @@ const Nav = ({ navVisible, setNavVisible }) => {
 
   const { refreshConversations } = useConversations();
   const { pageNumber, searchQuery, setPageNumber, searchQueryRes } = useSearchContext();
-
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useConversationsInfiniteQuery(
-    { pageNumber: pageNumber.toString(), isArchived: false },
-    { enabled: isAuthenticated },
-  );
-
+  const [tags, setTags] = useState<string[]>([]);
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+    useConversationsInfiniteQuery(
+      {
+        pageNumber: pageNumber.toString(),
+        isArchived: false,
+        tags: tags.length === 0 ? undefined : tags,
+      },
+      { enabled: isAuthenticated },
+    );
+  useEffect(() => {
+    // When a tag is selected, refetch the list of conversations related to that tag
+    refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tags]);
   const { containerRef, moveToTop } = useNavScrolling<ConversationListResponse>({
     setShowLoading,
     hasNextPage: searchQuery ? searchQueryRes.hasNextPage : hasNextPage,
@@ -102,8 +116,9 @@ const Nav = ({ navVisible, setNavVisible }) => {
     <TooltipProvider delayDuration={250}>
       <Tooltip>
         <div
+          data-testid="nav"
           className={
-            'nav active max-w-[320px] flex-shrink-0 overflow-x-hidden bg-gray-50 dark:bg-gray-750 md:max-w-[260px]'
+            'nav active max-w-[320px] flex-shrink-0 overflow-x-hidden bg-gray-50 dark:bg-gray-850 md:max-w-[260px]'
           }
           style={{
             width: navVisible ? navWidth : '0px',
@@ -149,6 +164,7 @@ const Nav = ({ navVisible, setNavVisible }) => {
                         />
                       )}
                     </div>
+                    <BookmarkNav tags={tags} setTags={setTags} />
                     <NavLinks />
                   </nav>
                 </div>
@@ -163,7 +179,7 @@ const Nav = ({ navVisible, setNavVisible }) => {
           navVisible={navVisible}
           className="fixed left-0 top-1/2 z-40 hidden md:flex"
         />
-        <div className={`nav-mask${navVisible ? ' active' : ''}`} onClick={toggleNavVisible} />
+        <div className={`nav-mask${navVisible ? 'active' : ''}`} onClick={toggleNavVisible} />
       </Tooltip>
     </TooltipProvider>
   );

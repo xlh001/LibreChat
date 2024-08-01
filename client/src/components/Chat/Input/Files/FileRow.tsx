@@ -13,6 +13,7 @@ export default function FileRow({
   assistant_id,
   tool_resource,
   fileFilter,
+  isRTL,
   Wrapper,
 }: {
   files: Map<string, ExtendedFile>;
@@ -21,6 +22,7 @@ export default function FileRow({
   fileFilter?: (file: ExtendedFile) => boolean;
   assistant_id?: string;
   tool_resource?: EToolResources;
+  isRTL?: boolean;
   Wrapper?: React.FC<{ children: React.ReactNode }>;
 }) {
   const files = Array.from(_files.values()).filter((file) =>
@@ -64,8 +66,11 @@ export default function FileRow({
   }
 
   const renderFiles = () => {
+    // Inline style for RTL
+    const rowStyle = isRTL ? { display: 'flex', flexDirection: 'row-reverse' } : {};
+
     return (
-      <>
+      <div style={rowStyle as React.CSSProperties}>
         {files
           .reduce(
             (acc, current) => {
@@ -83,17 +88,16 @@ export default function FileRow({
               return (
                 <Image
                   key={index}
-                  url={file.preview}
+                  url={file.preview || file.filepath}
                   onDelete={handleDelete}
                   progress={file.progress}
                   source={file.source}
                 />
               );
             }
-
             return <FileContainer key={index} file={file} onDelete={handleDelete} />;
           })}
-      </>
+      </div>
     );
   };
 

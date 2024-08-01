@@ -32,7 +32,6 @@ export default {
   com_ui_enter: 'أدخل',
   com_ui_submit: 'إرسال',
   com_ui_upload_success: 'تم تحميل الملف بنجاح',
-  com_ui_upload_invalid: 'ملف غير صالح للتحميل',
   com_ui_cancel: 'إلغاء',
   com_ui_save: 'حفظ',
   com_ui_copy_to_clipboard: 'نسخ إلى الحافظة',
@@ -51,26 +50,44 @@ export default {
   com_ui_import_conversation_error: 'حدث خطأ أثناء استيراد محادثاتك',
   com_ui_confirm_action: 'تأكيد الإجراء',
   com_ui_chats: 'الدردشات',
-  com_ui_share: 'Share',
-  com_ui_share_link_to_chat: 'Share link to chat',
-  com_ui_share_error: 'There was an error sharing the chat link',
-  com_ui_share_create_message: 'Your name and any messages you add after sharing stay private.',
+  com_ui_share: 'مشاركة',
+  com_ui_copy_link: 'نسخ الرابط',
+  com_ui_update_link: 'رابط التحديث',
+  com_ui_create_link: 'إنشاء رابط',
+  com_ui_share_link_to_chat: 'شارك الرابط في الدردشة',
+  com_ui_share_error: 'حدث خطأ أثناء مشاركة رابط الدردشة',
+  com_ui_share_retrieve_error: 'حدث خطأ أثناء حذف الرابط المشترك.',
+  com_ui_share_delete_error: 'حدث خطأ أثناء حذف الرابط المشترك.',
+  com_ui_share_create_message: 'سيظل اسمك وأي رسائل تضيفها بعد المشاركة خاصة.',
   com_ui_share_created_message:
-    'A public link to your chat has been created. Manage previously shared chats at any time via Settings.',
-  com_ui_share_update_message:
-    'Your name, custom instructions, and any messages you add after sharing stay private.',
+    'تم إنشاء رابط مشترك للدردشة الخاصة بك. يمكنك إدارة الدردشات المشتركة مسبقًا في أي وقت عبر الإعدادات.',
+  com_ui_share_update_message: 'سيظل اسمك والتعليمات المخصصة وأي رسائل تضيفها بعد المشاركة خاصة.',
   com_ui_share_updated_message:
-    'A public link to your chat has been updated. Manage previously shared chats at any time via Settings.',
-  com_ui_shared_link_not_found: 'Shared link not found',
+    'تم تحديث رابط مشترك للدردشة الخاصة بك. يمكنك إدارة الدردشات المشتركة مسبقًا في أي وقت عبر الإعدادات.',
+  com_ui_shared_link_not_found: 'الرابط المشترك غير موجود',
   com_ui_delete: 'حذف',
   com_ui_delete_conversation: 'حذف الدردشة؟',
-  com_ui_delete_conversation_confirm: 'سيتم حذف هذا',
+  com_ui_delete_confirm: 'سيتم حذف هذا',
   com_ui_rename: 'إعادة تسمية',
   com_ui_archive: 'أرشفة',
   com_ui_archive_error: 'فشل في أرشفة المحادثة',
   com_ui_unarchive: 'إلغاء الأرشفة',
   com_ui_unarchive_error: 'فشل في إلغاء الأرشفة',
   com_ui_more_options: 'المزيد',
+  com_ui_bookmarks: 'الإشارات المرجعية',
+  com_ui_bookmarks_rebuild: 'إعادة بناء',
+  com_ui_bookmarks_new: 'إشارة مرجعية جديدة',
+  com_ui_bookmark_delete_confirm: 'هل أنت متأكد أنك تريد حذف هذه الإشارة المرجعية؟',
+  com_ui_bookmarks_title: 'عنوان',
+  com_ui_bookmarks_count: 'العدد',
+  com_ui_bookmarks_description: 'وصف',
+  com_ui_bookmarks_create_success: 'تم إنشاء الإشارة المرجعية بنجاح',
+  com_ui_bookmarks_update_success: 'تم تحديث الإشارة المرجعية بنجاح',
+  com_ui_bookmarks_delete_success: 'تم حذف الإشارة المرجعية بنجاح',
+  com_ui_bookmarks_create_error: 'حدث خطأ أثناء إنشاء الإشارة المرجعية',
+  com_ui_bookmarks_update_error: 'حدث خطأ أثناء تحديث الإشارة المرجعية',
+  com_ui_bookmarks_delete_error: 'حدث خطأ أثناء حذف الإشارة المرجعية',
+  com_ui_bookmarks_add_to_conversation: 'أضف إلى المحادثة الحالية',
   com_auth_error_login:
     'تعذر تسجيل الدخول باستخدام المعلومات المقدمة. يرجى التحقق من بيانات الاعتماد الخاصة بك والمحاولة مرة أخرى.',
   com_auth_error_login_rl:
@@ -294,6 +311,8 @@ export default {
   com_nav_help_faq: 'مساعدة & الأسئلة الشائعة',
   com_nav_settings: 'الإعدادات',
   com_nav_search_placeholder: 'بحث في الرسائل',
+  com_nav_info_bookmarks_rebuild:
+    'إذا كان عدد الإشارات المرجعية غير صحيح، يرجى إعادة بناء معلومات الإشارة المرجعية. سيتم إعادة حساب عدد الإشارات المرجعية وستتم استعادة البيانات إلى حالتها الصحيحة.',
   com_nav_setting_general: 'عام',
   com_nav_setting_data: 'تحكم في البيانات',
   /* The following are AI translated */
@@ -308,9 +327,6 @@ export default {
   com_ui_assistant_delete_error: 'حدث خطأ أثناء حذف المساعد',
   com_ui_copied: 'تم النسخ',
   com_ui_copy_code: 'نسخ الكود',
-  com_ui_copy_link: 'نسخ الرابط',
-  com_ui_update_link: 'رابط التحديث',
-  com_ui_create_link: 'إنشاء رابط',
   com_nav_source_chat: 'عرض محادثة المصدر',
   com_ui_date_today: 'اليوم',
   com_ui_date_yesterday: 'أمس',
@@ -346,6 +362,7 @@ export default {
   com_sidepanel_hide_panel: 'إخفاء اللوحة',
   com_sidepanel_attach_files: 'إرفاق الملفات',
   com_sidepanel_manage_files: 'إدارة الملفات',
+  com_sidepanel_conversation_tags: 'الإشارات المرجعية',
   com_assistants_capabilities: 'قدرات',
   com_assistants_knowledge: 'المعرفة',
   com_assistants_completed_function: 'تم تشغيل {0}',
@@ -469,7 +486,6 @@ export default {
   com_ui_max_tags: 'الحد الأقصى المسموح به هو {0}، باستخدام أحدث القيم.',
   com_auth_back_to_login: 'العودة إلى تسجيل الدخول',
   com_endpoint_message: 'رسالة',
-  com_endpoint_messages: 'رسائل',
   com_endpoint_message_not_appendable: 'عدّل رسالتك أو أعد إنشاءها.',
   com_endpoint_context_tokens: 'الحد الأقصى لرموز السياق',
   com_endpoint_context_info:
@@ -544,6 +560,7 @@ export default {
   com_nav_my_files: 'ملفاتي',
   com_nav_enter_to_send: 'اضغط على مفتاح الإدخال لإرسال الرسائل',
   com_nav_user_name_display: 'عرض اسم المستخدم في الرسائل',
+  com_nav_save_drafts: 'حفظ المستخدمين',
   com_nav_show_code: 'إظهار الشفرة دائمًا عند استخدام مفسر الشفرة',
   com_nav_send_message: 'إرسال رسالة',
   com_nav_setting_beta: 'ميزات تجريبية',
@@ -692,10 +709,6 @@ export const comparisons = {
     english: 'Successfully uploaded file',
     translated: 'تم تحميل الملف بنجاح',
   },
-  com_ui_upload_invalid: {
-    english: 'Invalid file for upload. Must be an image not exceeding 2 MB',
-    translated: 'ملف غير صالح للتحميل',
-  },
   com_ui_cancel: {
     english: 'Cancel',
     translated: 'إلغاء',
@@ -770,40 +783,59 @@ export const comparisons = {
   },
   com_ui_share: {
     english: 'Share',
-    translated: 'Share',
+    translated: 'مشاركة',
+  },
+  com_ui_copy_link: {
+    english: 'Copy link',
+    translated: 'نسخ الرابط',
+  },
+  com_ui_update_link: {
+    english: 'Update link',
+    translated: 'رابط التحديث',
+  },
+  com_ui_create_link: {
+    english: 'Create link',
+    translated: 'إنشاء رابط',
   },
   com_ui_share_link_to_chat: {
     english: 'Share link to chat',
-    translated: 'Share link to chat',
+    translated: 'شارك الرابط في الدردشة',
+  },
+  com_ui_share_retrieve_error: {
+    english: 'There was an error deleting the shared link.',
+    translated: 'حدث خطأ أثناء حذف الرابط المشترك.',
+  },
+  com_ui_share_delete_error: {
+    english: 'There was an error deleting the shared link.',
+    translated: 'حدث خطأ أثناء حذف الرابط المشترك.',
   },
   com_ui_share_error: {
     english: 'There was an error sharing the chat link',
-    translated: 'There was an error sharing the chat link',
+    translated: 'حدث خطأ أثناء مشاركة رابط الدردشة',
   },
   com_ui_share_create_message: {
     english: 'Your name and any messages you add after sharing stay private.',
-    translated: 'Your name and any messages you add after sharing stay private.',
+    translated: 'سيظل اسمك وأي رسائل تضيفها بعد المشاركة خاصة.',
   },
   com_ui_share_created_message: {
     english:
-      'A public link to your chat has been created. Manage previously shared chats at any time via Settings.',
+      'A shared link to your chat has been created. Manage previously shared chats at any time via Settings.',
     translated:
-      'A public link to your chat has been created. Manage previously shared chats at any time via Settings.',
+      'تم إنشاء رابط مشترك للدردشة الخاصة بك. يمكنك إدارة الدردشات المشتركة مسبقًا في أي وقت عبر الإعدادات.',
   },
   com_ui_share_update_message: {
     english: 'Your name, custom instructions, and any messages you add after sharing stay private.',
-    translated:
-      'Your name, custom instructions, and any messages you add after sharing stay private.',
+    translated: 'سيظل اسمك والتعليمات المخصصة وأي رسائل تضيفها بعد المشاركة خاصة.',
   },
   com_ui_share_updated_message: {
     english:
-      'A public link to your chat has been updated. Manage previously shared chats at any time via Settings.',
+      'A shared link to your chat has been updated. Manage previously shared chats at any time via Settings.',
     translated:
-      'A public link to your chat has been updated. Manage previously shared chats at any time via Settings.',
+      'تم تحديث رابط مشترك للدردشة الخاصة بك. يمكنك إدارة الدردشات المشتركة مسبقًا في أي وقت عبر الإعدادات.',
   },
   com_ui_shared_link_not_found: {
     english: 'Shared link not found',
-    translated: 'Shared link not found',
+    translated: 'الرابط المشترك غير موجود',
   },
   com_ui_delete: {
     english: 'Delete',
@@ -813,7 +845,7 @@ export const comparisons = {
     english: 'Delete chat?',
     translated: 'حذف الدردشة؟',
   },
-  com_ui_delete_conversation_confirm: {
+  com_ui_delete_confirm: {
     english: 'This will delete',
     translated: 'سيتم حذف هذا',
   },
@@ -840,6 +872,62 @@ export const comparisons = {
   com_ui_more_options: {
     english: 'More',
     translated: 'المزيد',
+  },
+  com_ui_bookmarks: {
+    english: 'Bookmarks',
+    translated: 'الإشارات المرجعية',
+  },
+  com_ui_bookmarks_rebuild: {
+    english: 'Rebuild',
+    translated: 'إعادة بناء',
+  },
+  com_ui_bookmarks_new: {
+    english: 'New Bookmark',
+    translated: 'إشارة مرجعية جديدة',
+  },
+  com_ui_bookmark_delete_confirm: {
+    english: 'Are you sure you want to delete this bookmark?',
+    translated: 'هل أنت متأكد أنك تريد حذف هذه الإشارة المرجعية؟',
+  },
+  com_ui_bookmarks_title: {
+    english: 'Title',
+    translated: 'عنوان',
+  },
+  com_ui_bookmarks_count: {
+    english: 'Count',
+    translated: 'العدد',
+  },
+  com_ui_bookmarks_description: {
+    english: 'Description',
+    translated: 'وصف',
+  },
+  com_ui_bookmarks_create_success: {
+    english: 'Bookmark created successfully',
+    translated: 'تم إنشاء الإشارة المرجعية بنجاح',
+  },
+  com_ui_bookmarks_update_success: {
+    english: 'Bookmark updated successfully',
+    translated: 'تم تحديث الإشارة المرجعية بنجاح',
+  },
+  com_ui_bookmarks_delete_success: {
+    english: 'Bookmark deleted successfully',
+    translated: 'تم حذف الإشارة المرجعية بنجاح',
+  },
+  com_ui_bookmarks_create_error: {
+    english:  'There was an error creating the bookmark',
+    translated:  'حدث خطأ أثناء إنشاء الإشارة المرجعية',
+  },
+  com_ui_bookmarks_update_error: {
+    english:  'There was an error updating the bookmark',
+    translated:  'حدث خطأ أثناء تحديث الإشارة المرجعية',
+  },
+  com_ui_bookmarks_delete_error: {
+    english:  'There was an error deleting the bookmark',
+    translated:  'حدث خطأ أثناء حذف الإشارة المرجعية',
+  },
+  com_ui_bookmarks_add_to_conversation: {
+    english:  'Add to current conversation',
+    translated:  'أضف إلى المحادثة الحالية',
   },
   com_auth_error_login: {
     english:
@@ -1637,6 +1725,12 @@ export const comparisons = {
     english: 'Search messages',
     translated: 'بحث في الرسائل',
   },
+  com_nav_info_bookmarks_rebuild: {
+    english:
+      'If the bookmark count is incorrect, please rebuild the bookmark information. The bookmark count will be recalculated and the data will be restored to its correct state.',
+    translated:
+      'إذا كان عدد الإشارات المرجعية غير صحيح، يرجى إعادة بناء معلومات الإشارة المرجعية. سيتم إعادة حساب عدد الإشارات المرجعية وستتم استعادة البيانات إلى حالتها الصحيحة.',
+  },
   com_nav_setting_general: {
     english: 'General',
     translated: 'عام',
@@ -1682,18 +1776,6 @@ export const comparisons = {
   com_ui_copy_code: {
     english: 'Copy code',
     translated: 'نسخ الكود',
-  },
-  com_ui_copy_link: {
-    english: 'Copy link',
-    translated: 'نسخ الرابط',
-  },
-  com_ui_update_link: {
-    english: 'Update link',
-    translated: 'رابط التحديث',
-  },
-  com_ui_create_link: {
-    english: 'Create link',
-    translated: 'إنشاء رابط',
   },
   com_nav_source_chat: {
     english: 'View source chat',
@@ -1828,6 +1910,10 @@ export const comparisons = {
   com_sidepanel_manage_files: {
     english: 'Manage Files',
     translated: 'إدارة الملفات',
+  },
+  com_sidepanel_conversation_tags: {
+    english: 'Bookmarks',
+    translated: 'الإشارات المرجعية',
   },
   com_assistants_capabilities: {
     english: 'Capabilities',
@@ -2290,10 +2376,6 @@ export const comparisons = {
     english: 'Message',
     translated: 'رسالة',
   },
-  com_endpoint_messages: {
-    english: 'Messages',
-    translated: 'رسائل',
-  },
   com_endpoint_message_not_appendable: {
     english: 'Edit your message or Regenerate.',
     translated: 'عدّل رسالتك أو أعد إنشاءها.',
@@ -2558,6 +2640,10 @@ export const comparisons = {
   com_nav_user_name_display: {
     english: 'Display username in messages',
     translated: 'عرض اسم المستخدم في الرسائل',
+  },
+  com_nav_save_drafts: {
+    english: 'Save drafts locally',
+    translated: 'حفظ المستخدمين محليًا',
   },
   com_nav_show_code: {
     english: 'Always show code when using code interpreter',

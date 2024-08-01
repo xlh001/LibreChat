@@ -11,6 +11,7 @@ export default {
   com_sidepanel_hide_panel: 'Ocultar Painel',
   com_sidepanel_attach_files: 'Anexar Arquivos',
   com_sidepanel_manage_files: 'Gerenciar Arquivos',
+  com_sidepanel_conversation_tags: 'Favoritos',
   com_assistants_capabilities: 'Capacidades',
   com_assistants_knowledge: 'Conhecimento',
   com_assistants_knowledge_info:
@@ -104,7 +105,6 @@ export default {
   com_ui_submit: 'Enviar',
   com_ui_upload_success: 'Arquivo carregado com sucesso',
   com_ui_upload_error: 'Ocorreu um erro ao carregar seu arquivo',
-  com_ui_upload_invalid: 'Arquivo inválido para upload. Deve ser uma imagem não excedendo 2 MB',
   com_ui_cancel: 'Cancelar',
   com_ui_save: 'Salvar',
   com_ui_save_submit: 'Salvar & Enviar',
@@ -135,19 +135,25 @@ export default {
   com_ui_assistants_output: 'Saída dos Assistentes',
   com_ui_delete: 'Excluir',
   com_ui_create: 'Criar',
-  com_ui_share: 'Share',
-  com_ui_share_link_to_chat: 'Share link to chat',
-  com_ui_share_error: 'There was an error sharing the chat link',
-  com_ui_share_create_message: 'Your name and any messages you add after sharing stay private.',
+  com_ui_share: 'Compartilhar',
+  com_ui_copy_link: 'Copiar link',
+  com_ui_update_link: 'Atualizar link',
+  com_ui_create_link: 'Criar link',
+  com_ui_share_link_to_chat: 'Compartilhar link no chat',
+  com_ui_share_error: 'Ocorreu um erro ao compartilhar o link do chat',
+  com_ui_share_retrieve_error: 'Ocorreu um erro ao excluir o link compartilhado.',
+  com_ui_share_delete_error: 'Ocorreu um erro ao excluir o link compartilhado.',
+  com_ui_share_create_message:
+    'Seu nome e quaisquer mensagens que você adicionar após o compartilhamento permanecem privadas.',
   com_ui_share_created_message:
-    'A public link to your chat has been created. Manage previously shared chats at any time via Settings.',
+    'Um link compartilhado para o seu chat foi criado. Gerencie conversas compartilhadas previamente a qualquer momento via Configurações.',
   com_ui_share_update_message:
-    'Your name, custom instructions, and any messages you add after sharing stay private.',
+    'Seu nome, instruções personalizadas e quaisquer mensagens que você adicionar após o compartilhamento permanecem privadas.',
   com_ui_share_updated_message:
-    'A public link to your chat has been updated. Manage previously shared chats at any time via Settings.',
-  com_ui_shared_link_not_found: 'Shared link not found',
+    'Um link compartilhado para o seu chat foi atualizado. Gerencie conversas compartilhadas previamente a qualquer momento via Configurações.',
+  com_ui_shared_link_not_found: 'Link compartilhado não encontrado',
   com_ui_delete_conversation: 'Excluir conversa?',
-  com_ui_delete_conversation_confirm: 'Isso excluirá',
+  com_ui_delete_confirm: 'Isso excluirá',
   com_ui_delete_assistant_confirm:
     'Tem certeza de que deseja excluir este Assistente? Esta ação não pode ser desfeita.',
   com_ui_rename: 'Renomear',
@@ -163,6 +169,20 @@ export default {
     'O envio de "{0}" está levando mais tempo do que o esperado. Aguarde enquanto o arquivo é indexado para recuperação.',
   com_ui_privacy_policy: 'Política de privacidade',
   com_ui_terms_of_service: 'Termos de serviço',
+  com_ui_bookmarks: 'Favoritos',
+  com_ui_bookmarks_rebuild: 'Reconstruir',
+  com_ui_bookmarks_new: 'Novo Favorito',
+  com_ui_bookmark_delete_confirm: 'Tem certeza de que deseja excluir este favorito?',
+  com_ui_bookmarks_title: 'Título',
+  com_ui_bookmarks_count: 'Contagem',
+  com_ui_bookmarks_description: 'Descrição',
+  com_ui_bookmarks_create_success: 'Favorito criado com sucesso',
+  com_ui_bookmarks_update_success: 'Favorito atualizado com sucesso',
+  com_ui_bookmarks_delete_success: 'Favorito excluído com sucesso',
+  com_ui_bookmarks_create_error: 'Houve um erro ao criar o favorito',
+  com_ui_bookmarks_update_error: 'Houve um erro ao atualizar o favorito',
+  com_ui_bookmarks_delete_error: 'Houve um erro ao excluir o favorito',
+  com_ui_bookmarks_add_to_conversation: 'Adicionar à conversa atual',
   com_auth_error_login:
     'Não foi possível fazer login com as informações fornecidas. Por favor, verifique suas credenciais e tente novamente.',
   com_auth_error_login_rl:
@@ -440,6 +460,7 @@ export default {
   com_nav_theme_dark: 'Escuro',
   com_nav_theme_light: 'Claro',
   com_nav_user_name_display: 'Exibir nome de usuário nas mensagens',
+  com_nav_save_drafts: 'Salvar rascunhos localmente',
   com_nav_show_code: 'Sempre mostrar código ao usar o interpretador de código',
   com_nav_clear_all_chats: 'Limpar todas as conversas',
   com_nav_confirm_clear: 'Confirmar Limpeza',
@@ -461,6 +482,8 @@ export default {
   com_nav_help_faq: 'Ajuda & FAQ',
   com_nav_settings: 'Configurações',
   com_nav_search_placeholder: 'Pesquisar mensagens',
+  com_nav_info_bookmarks_rebuild:
+  'Se a contagem de favoritos estiver incorreta, por favor, reconstrua as informações de favoritos. A contagem de favoritos será recalculada e os dados serão restaurados ao estado correto.',
   com_nav_setting_general: 'Geral',
   com_nav_setting_beta: 'Recursos beta',
   com_nav_setting_data: 'Controles de dados',
@@ -502,6 +525,10 @@ export const comparisons = {
   com_sidepanel_manage_files: {
     english: 'Manage Files',
     translated: 'Gerenciar Arquivos',
+  },
+  com_sidepanel_conversation_tags: {
+    english: 'Bookmarks',
+    translated: 'Favoritos',
   },
   com_assistants_capabilities: {
     english: 'Capabilities',
@@ -856,10 +883,6 @@ export const comparisons = {
     english: 'There was an error uploading your file',
     translated: 'Ocorreu um erro ao carregar seu arquivo',
   },
-  com_ui_upload_invalid: {
-    english: 'Invalid file for upload. Must be an image not exceeding 2 MB',
-    translated: 'Arquivo inválido para upload. Deve ser uma imagem não excedendo 2 MB',
-  },
   com_ui_cancel: {
     english: 'Cancel',
     translated: 'Cancelar',
@@ -982,46 +1005,67 @@ export const comparisons = {
   },
   com_ui_share: {
     english: 'Share',
-    translated: 'Share',
+    translated: 'Compartilhar',
+  },
+  com_ui_copy_link: {
+    english: 'Copy link',
+    translated: 'Copiar link',
+  },
+  com_ui_update_link: {
+    english: 'Update link',
+    translated: 'Atualizar link',
+  },
+  com_ui_create_link: {
+    english: 'Create link',
+    translated: 'Criar link',
   },
   com_ui_share_link_to_chat: {
     english: 'Share link to chat',
-    translated: 'Share link to chat',
+    translated: 'Compartilhar link no chat',
+  },
+  com_ui_share_retrieve_error: {
+    english: 'There was an error deleting the shared link.',
+    translated: 'Ocorreu um erro ao excluir o link compartilhado.',
+  },
+  com_ui_share_delete_error: {
+    english: 'There was an error deleting the shared link.',
+    translated: 'Ocorreu um erro ao excluir o link compartilhado.',
   },
   com_ui_share_error: {
     english: 'There was an error sharing the chat link',
-    translated: 'There was an error sharing the chat link',
+    translated: 'Ocorreu um erro ao compartilhar o link do chat',
   },
   com_ui_share_create_message: {
     english: 'Your name and any messages you add after sharing stay private.',
-    translated: 'Your name and any messages you add after sharing stay private.',
+    translated:
+      'Seu nome e quaisquer mensagens que você adicionar após o compartilhamento permanecem privadas.',
   },
   com_ui_share_created_message: {
     english:
-      'A public link to your chat has been created. Manage previously shared chats at any time via Settings.',
+      'A shared link to your chat has been created. Manage previously shared chats at any time via Settings.',
     translated:
-      'A public link to your chat has been created. Manage previously shared chats at any time via Settings.',
+      'Um link compartilhado para o seu chat foi criado. Gerencie conversas compartilhadas previamente a qualquer momento via Configurações.',
   },
   com_ui_share_update_message: {
     english: 'Your name, custom instructions, and any messages you add after sharing stay private.',
     translated:
-      'Your name, custom instructions, and any messages you add after sharing stay private.',
+      'Seu nome, instruções personalizadas e quaisquer mensagens que você adicionar após o compartilhamento permanecem privadas.',
   },
   com_ui_share_updated_message: {
     english:
-      'A public link to your chat has been updated. Manage previously shared chats at any time via Settings.',
+      'A shared link to your chat has been updated. Manage previously shared chats at any time via Settings.',
     translated:
-      'A public link to your chat has been updated. Manage previously shared chats at any time via Settings.',
+      'Um link compartilhado para o seu chat foi atualizado. Gerencie conversas compartilhadas previamente a qualquer momento via Configurações.',
   },
   com_ui_shared_link_not_found: {
     english: 'Shared link not found',
-    translated: 'Shared link not found',
+    translated: 'Link compartilhado não encontrado',
   },
   com_ui_delete_conversation: {
     english: 'Delete chat?',
     translated: 'Excluir conversa?',
   },
-  com_ui_delete_conversation_confirm: {
+  com_ui_delete_confirm: {
     english: 'This will delete',
     translated: 'Isso excluirá',
   },
@@ -1079,6 +1123,62 @@ export const comparisons = {
   com_ui_terms_of_service: {
     english: 'Terms of service',
     translated: 'Termos de serviço',
+  },
+  com_ui_bookmarks: {
+    english: 'Bookmarks',
+    translated: 'Favoritos',
+  },
+  com_ui_bookmarks_rebuild: {
+    english: 'Rebuild',
+    translated: 'Reconstruir',
+  },
+  com_ui_bookmarks_new: {
+    english: 'New Bookmark',
+    translated: 'Novo Favorito',
+  },
+  com_ui_bookmark_delete_confirm: {
+    english: 'Are you sure you want to delete this bookmark?',
+    translated: 'Tem certeza de que deseja excluir este favorito?',
+  },
+  com_ui_bookmarks_title: {
+    english: 'Title',
+    translated: 'Título',
+  },
+  com_ui_bookmarks_count: {
+    english: 'Count',
+    translated: 'Contagem',
+  },
+  com_ui_bookmarks_description: {
+    english: 'Description',
+    translated: 'Descrição',
+  },
+  com_ui_bookmarks_create_success: {
+    english: 'Bookmark created successfully',
+    translated: 'Favorito criado com sucesso',
+  },
+  com_ui_bookmarks_update_success: {
+    english: 'Bookmark updated successfully',
+    translated: 'Favorito atualizado com sucesso',
+  },
+  com_ui_bookmarks_delete_success: {
+    english: 'Bookmark deleted successfully',
+    translated: 'Favorito excluído com sucesso',
+  },
+  com_ui_bookmarks_create_error: {
+    english: 'There was an error creating the bookmark',
+    translated: 'Houve um erro ao criar o favorito',
+  },
+  com_ui_bookmarks_update_error: {
+    english: 'There was an error updating the bookmark',
+    translated: 'Houve um erro ao atualizar o favorito',
+  },
+  com_ui_bookmarks_delete_error: {
+    english: 'There was an error deleting the bookmark',
+    translated: 'Houve um erro ao excluir o favorito',
+  },
+  com_ui_bookmarks_add_to_conversation: {
+    english: 'Add to current conversation',
+    translated: 'Adicionar à conversa atual',
   },
   com_auth_error_login: {
     english:
@@ -2053,6 +2153,10 @@ export const comparisons = {
     english: 'Display username in messages',
     translated: 'Exibir nome de usuário nas mensagens',
   },
+  com_nav_save_drafts: {
+    english: 'Save drafts locally',
+    translated: 'Salvar rascunhos localmente',
+  },
   com_nav_show_code: {
     english: 'Always show code when using code interpreter',
     translated: 'Sempre mostrar código ao usar o interpretador de código',
@@ -2132,6 +2236,12 @@ export const comparisons = {
   com_nav_search_placeholder: {
     english: 'Search messages',
     translated: 'Pesquisar mensagens',
+  },
+  com_nav_info_bookmarks_rebuild: {
+    english:
+      'If the bookmark count is incorrect, please rebuild the bookmark information. The bookmark count will be recalculated and the data will be restored to its correct state.',
+    translated:
+      'Se a contagem de favoritos estiver incorreta, por favor, reconstrua as informações de favoritos. A contagem de favoritos será recalculada e os dados serão restaurados ao estado correto.',
   },
   com_nav_setting_general: {
     english: 'General',

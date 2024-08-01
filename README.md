@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-<a href="https://railway.app/template/b5k2mn?referralCode=myKrVZ">
+<a href="https://railway.app/template/b5k2mn?referralCode=HI9hWz">
   <img src="https://railway.app/button.svg" alt="Deploy on Railway" height="30">
 </a>
 <a href="https://zeabur.com/templates/0X2ZY8">
@@ -50,7 +50,7 @@
 - 🔄 Edit, Resubmit, and Continue Messages with Conversation branching
 - 🌿 Fork Messages & Conversations for Advanced Context control
 - 💬 Multimodal Chat:
-    - Upload and analyze images with Claude 3, GPT-4 (including `gpt-4o`), and Gemini Vision 📸
+    - Upload and analyze images with Claude 3, GPT-4 (including `gpt-4o` and `gpt-4o-mini`), and Gemini Vision 📸
     - Chat with Files using Custom Endpoints, OpenAI, Azure, Anthropic, & Google. 🗃️
     - Advanced Agents with Files, Code Interpreter, Tools, and API Actions 🔦
       - Available through the [OpenAI Assistants API](https://platform.openai.com/docs/assistants/overview) 🌤️
@@ -58,9 +58,13 @@
 - 🌎 Multilingual UI:
   - English, 中文, Deutsch, Español, Français, Italiano, Polski, Português Brasileiro,
   - Русский, 日本語, Svenska, 한국어, Tiếng Việt, 繁體中文, العربية, Türkçe, Nederlands, עברית
-- 🎨 Customizable Dropdown & Interface: Adapts to both power users and newcomers.
+- 🎨 Customizable Dropdown & Interface: Adapts to both power users and newcomers
+- 📧 Verify your email to ensure secure access
+- 🗣️ Chat hands-free with Speech-to-Text and Text-to-Speech magic
+  - Automatically send and play Audio
+  - Supports OpenAI, Azure OpenAI, and Elevenlabs
 - 📥 Import Conversations from LibreChat, ChatGPT, Chatbot UI
-- 📤 Export conversations as screenshots, markdown, text, json.
+- 📤 Export conversations as screenshots, markdown, text, json
 - 🔍 Search all messages/conversations
 - 🔌 Plugins, including web access, image generation with DALL-E-3 and more
 - 👥 Multi-User, Secure Authentication with Moderation and Token spend tools
@@ -77,7 +81,7 @@ LibreChat brings together the future of assistant AIs with the revolutionary tec
 
 With LibreChat, you no longer need to opt for ChatGPT Plus and can instead use free or pay-per-call APIs. We welcome contributions, cloning, and forking to enhance the capabilities of this advanced chatbot platform.
 
-[![Watch the video](https://img.youtube.com/vi/YLVUW5UP9N0/maxresdefault.jpg)](https://www.youtube.com/watch?v=YLVUW5UP9N0)
+[![Watch the video](https://img.youtube.com/vi/bSVHEbVPNl4/maxresdefault.jpg)](https://www.youtube.com/watch?v=bSVHEbVPNl4)
 Click on the thumbnail to open the video☝️
 
 ---

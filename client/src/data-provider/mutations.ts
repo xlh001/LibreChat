@@ -1,32 +1,43 @@
 import {
   EToolResources,
   LocalStorageKeys,
+  InfiniteCollections,
   defaultAssistantsVersion,
+  ConversationListResponse,
 } from 'librechat-data-provider';
 import { useSetRecoilState } from 'recoil';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { dataService, MutationKeys, QueryKeys, defaultOrderQuery } from 'librechat-data-provider';
-import type { UseMutationResult } from '@tanstack/react-query';
 import type t from 'librechat-data-provider';
+import type { InfiniteData, UseMutationResult } from '@tanstack/react-query';
+import { updateConversationTag } from '~/utils/conversationTags';
+import { normalizeData } from '~/utils/collection';
+import store from '~/store';
 import {
+  useConversationTagsQuery,
+  useConversationsInfiniteQuery,
+  useSharedLinksInfiniteQuery,
+} from './queries';
+import {
+  /* Shared Links */
   addSharedLink,
-  addConversation,
   deleteSharedLink,
+  /* Conversations */
+  addConversation,
   updateConvoFields,
   updateConversation,
   deleteConversation,
 } from '~/utils';
-import { useConversationsInfiniteQuery, useSharedLinksInfiniteQuery } from './queries';
-import { normalizeData } from '~/utils/collection';
-import store from '~/store';
 
-/** Conversations */
-export const useGenTitleMutation = (): UseMutationResult<
+export type TGenTitleMutation = UseMutationResult<
   t.TGenTitleResponse,
   unknown,
   t.TGenTitleRequest,
   unknown
-> => {
+>;
+
+/** Conversations */
+export const useGenTitleMutation = (): TGenTitleMutation => {
   const queryClient = useQueryClient();
   return useMutation((payload: t.TGenTitleRequest) => dataService.genTitle(payload), {
     onSuccess: (response, vars) => {
@@ -73,6 +84,112 @@ export const useUpdateConversationMutation = (
           }
           return updateConversation(convoData, updatedConvo);
         });
+      },
+    },
+  );
+};
+
+const useUpdateTagsInConversation = () => {
+  const queryClient = useQueryClient();
+
+  // Update the queryClient cache with the new tag when a new tag is added/removed to a conversation
+  const updateTagsInConversation = (conversationId: string, tags: string[]) => {
+    // Update the tags for the current conversation
+    const currentConvo = queryClient.getQueryData<t.TConversation>([
+      QueryKeys.conversation,
+      conversationId,
+    ]);
+    if (!currentConvo) {
+      return;
+    }
+
+    const updatedConvo = {
+      ...currentConvo,
+      tags,
+    } as t.TConversation;
+    queryClient.setQueryData([QueryKeys.conversation, conversationId], updatedConvo);
+    queryClient.setQueryData<t.ConversationData>([QueryKeys.allConversations], (convoData) => {
+      if (!convoData) {
+        return convoData;
+      }
+      return updateConvoFields(
+        convoData,
+        {
+          conversationId: currentConvo.conversationId,
+          tags: updatedConvo.tags,
+        } as t.TConversation,
+        true,
+      );
+    });
+  };
+
+  // update the tag to newTag in all conversations when a tag is updated to a newTag
+  // The difference with updateTagsInConversation is that it adds or removes tags for a specific conversation,
+  // whereas this function is for changing the title of a specific tag.
+  const replaceTagsInAllConversations = (tag: string, newTag: string) => {
+    const data = queryClient.getQueryData<InfiniteData<ConversationListResponse>>([
+      QueryKeys.allConversations,
+    ]);
+
+    const conversationIdsWithTag = [] as string[];
+
+    // update tag to newTag in all conversations
+    const newData = JSON.parse(JSON.stringify(data)) as InfiniteData<ConversationListResponse>;
+    for (let pageIndex = 0; pageIndex < newData.pages.length; pageIndex++) {
+      const page = newData.pages[pageIndex];
+      page.conversations = page.conversations.map((conversation) => {
+        if (conversation.conversationId && conversation.tags?.includes(tag)) {
+          conversationIdsWithTag.push(conversation.conversationId);
+          conversation.tags = conversation.tags.map((t) => (t === tag ? newTag : t));
+        }
+        return conversation;
+      });
+    }
+    queryClient.setQueryData<InfiniteData<ConversationListResponse>>(
+      [QueryKeys.allConversations],
+      newData,
+    );
+
+    // update the tag to newTag from the cache of each conversation
+    for (let i = 0; i < conversationIdsWithTag.length; i++) {
+      const conversationId = conversationIdsWithTag[i];
+      const conversation = queryClient.getQueryData<t.TConversation>([
+        QueryKeys.conversation,
+        conversationId,
+      ]);
+      if (conversation && conversation.tags) {
+        const updatedConvo = {
+          ...conversation,
+          tags: conversation.tags.map((t) => (t === tag ? newTag : t)),
+        } as t.TConversation;
+        queryClient.setQueryData<t.TConversation>(
+          [QueryKeys.conversation, conversationId],
+          updatedConvo,
+        );
+      }
+    }
+  };
+
+  return { updateTagsInConversation, replaceTagsInAllConversations };
+};
+/**
+ * Add or remove tags for a conversation
+ */
+export const useTagConversationMutation = (
+  conversationId: string,
+): UseMutationResult<t.TTagConversationResponse, unknown, t.TTagConversationRequest, unknown> => {
+  const query = useConversationTagsQuery();
+  const { updateTagsInConversation } = useUpdateTagsInConversation();
+  return useMutation(
+    (payload: t.TTagConversationRequest) =>
+      dataService.addTagToConversation(conversationId, payload),
+    {
+      onSuccess: (updatedTags) => {
+        // Because the logic for calculating the bookmark count is complex,
+        // the client does not perform the calculation,
+        // but instead refetch the data from the API.
+        query.refetch();
+        updateTagsInConversation(conversationId, updatedTags);
       },
     },
   );
@@ -174,7 +291,7 @@ export const useCreateSharedLinkMutation = (
           vars.isPublic
             ? addSharedLink(sharedLink, _data)
             : deleteSharedLink(sharedLink, _data.shareId),
-          'sharedLinks',
+          InfiniteCollections.SHARED_LINKS,
           pageSize,
         );
       });
@@ -216,7 +333,7 @@ export const useUpdateSharedLinkMutation = (
           // Therefore, when isPublic is true, use addSharedLink instead of updateSharedLink.
             addSharedLink(sharedLink, _data)
             : deleteSharedLink(sharedLink, _data.shareId),
-          'sharedLinks',
+          InfiniteCollections.SHARED_LINKS,
           sharedLink.pages[0].pageSize as number,
         );
       });
@@ -254,7 +371,7 @@ export const useDeleteSharedLinkMutation = (
         }
         return normalizeData(
           deleteSharedLink(data, vars.shareId),
-          'sharedLinks',
+          InfiniteCollections.SHARED_LINKS,
           data.pages[0].pageSize as number,
         );
       });
@@ -262,6 +379,138 @@ export const useDeleteSharedLinkMutation = (
       refetch({
         refetchPage: (page, index) => index === (current?.pages.length || 1) - 1,
       });
+      onSuccess?.(_data, vars, context);
+    },
+    ...(_options || {}),
+  });
+};
+
+// If the number of conversations tagged is incorrect, recalculate the tag information.
+export const useRebuildConversationTagsMutation = (): UseMutationResult<
+  t.TConversationTagsResponse,
+  unknown,
+  unknown,
+  unknown
+> => {
+  const queryClient = useQueryClient();
+  return useMutation(() => dataService.rebuildConversationTags(), {
+    onSuccess: (_data) => {
+      queryClient.setQueryData<t.TConversationTag[]>([QueryKeys.conversationTags], _data);
+    },
+  });
+};
+
+// Add a tag or update tag information (tag, description, position, etc.)
+export const useConversationTagMutation = (
+  tag?: string,
+  options?: t.UpdateConversationTagOptions,
+): UseMutationResult<t.TConversationTagResponse, unknown, t.TConversationTagRequest, unknown> => {
+  const queryClient = useQueryClient();
+  const { ..._options } = options || {};
+  const { updateTagsInConversation, replaceTagsInAllConversations } = useUpdateTagsInConversation();
+  return useMutation(
+    (payload: t.TConversationTagRequest) =>
+      tag
+        ? dataService.updateConversationTag(tag, payload)
+        : dataService.createConversationTag(payload),
+    {
+      onSuccess: (_data, vars) => {
+        queryClient.setQueryData<t.TConversationTag[]>([QueryKeys.conversationTags], (data) => {
+          if (!data) {
+            return [
+              {
+                tag: 'Saved',
+                count: 1,
+                position: 0,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+            ] as t.TConversationTag[];
+          }
+          return updateConversationTag(data, vars, _data, tag);
+        });
+        if (vars.addToConversation && vars.conversationId && _data.tag) {
+          const currentConvo = queryClient.getQueryData<t.TConversation>([
+            QueryKeys.conversation,
+            vars.conversationId,
+          ]);
+          if (!currentConvo) {
+            return;
+          }
+          updateTagsInConversation(vars.conversationId, [...(currentConvo.tags || []), _data.tag]);
+        }
+        // Change the tag title to the new title
+        if (tag) {
+          replaceTagsInAllConversations(tag, _data.tag);
+        }
+      },
+      ...(_options || {}),
+    },
+  );
+};
+
+// When a bookmark is deleted, remove that bookmark(tag) from all conversations associated with it
+export const useDeleteTagInConversations = () => {
+  const queryClient = useQueryClient();
+  const deleteTagInAllConversation = (deletedTag: string) => {
+    const data = queryClient.getQueryData<InfiniteData<ConversationListResponse>>([
+      QueryKeys.allConversations,
+    ]);
+
+    const conversationIdsWithTag = [] as string[];
+
+    // remove deleted tag from conversations
+    const newData = JSON.parse(JSON.stringify(data)) as InfiniteData<ConversationListResponse>;
+    for (let pageIndex = 0; pageIndex < newData.pages.length; pageIndex++) {
+      const page = newData.pages[pageIndex];
+      page.conversations = page.conversations.map((conversation) => {
+        if (conversation.conversationId && conversation.tags?.includes(deletedTag)) {
+          conversationIdsWithTag.push(conversation.conversationId);
+          conversation.tags = conversation.tags.filter((t) => t !== deletedTag);
+        }
+        return conversation;
+      });
+    }
+    queryClient.setQueryData<InfiniteData<ConversationListResponse>>(
+      [QueryKeys.allConversations],
+      newData,
+    );
+
+    // Remove the deleted tag from the cache of each conversation
+    for (let i = 0; i < conversationIdsWithTag.length; i++) {
+      const conversationId = conversationIdsWithTag[i];
+      const conversationData = queryClient.getQueryData<t.TConversation>([
+        QueryKeys.conversation,
+        conversationId,
+      ]);
+      if (conversationData && conversationData.tags) {
+        conversationData.tags = conversationData.tags.filter((t) => t !== deletedTag);
+        queryClient.setQueryData<t.TConversation>(
+          [QueryKeys.conversation, conversationId],
+          conversationData,
+        );
+      }
+    }
+  };
+  return deleteTagInAllConversation;
+};
+// Delete a tag
+export const useDeleteConversationTagMutation = (
+  options?: t.DeleteConversationTagOptions,
+): UseMutationResult<t.TConversationTagResponse, unknown, string, void> => {
+  const queryClient = useQueryClient();
+  const deleteTagInAllConversations = useDeleteTagInConversations();
+  const { onSuccess, ..._options } = options || {};
+  return useMutation((tag: string) => dataService.deleteConversationTag(tag), {
+    onSuccess: (_data, vars, context) => {
+      queryClient.setQueryData<t.TConversationTag[]>([QueryKeys.conversationTags], (data) => {
+        if (!data) {
+          return data;
+        }
+        return data.filter((t) => t.tag !== vars);
+      });
+
+      deleteTagInAllConversations(vars);
       onSuccess?.(_data, vars, context);
     },
     ...(_options || {}),
@@ -344,81 +593,18 @@ export const useForkConvoMutation = (
 };
 
 export const useUploadConversationsMutation = (
-  _options?: t.MutationOptions<t.TImportJobStatus, FormData>,
+  _options?: t.MutationOptions<t.TImportResponse, FormData>,
 ) => {
   const queryClient = useQueryClient();
   const { onSuccess, onError, onMutate } = _options || {};
 
-  // returns the job status or reason of failure
-  const checkJobStatus = async (jobId) => {
-    try {
-      const response = await dataService.queryImportConversationJobStatus(jobId);
-      return response;
-    } catch (error) {
-      throw new Error('Failed to check job status');
-    }
-  };
-
-  // Polls the job status until it is completed, failed, or timed out
-  const pollJobStatus = (jobId, onSuccess, onError) => {
-    let timeElapsed = 0;
-    const timeout = 60000; // Timeout after a minute
-    const pollInterval = 500; // Poll every 500ms
-    const intervalId = setInterval(async () => {
-      try {
-        const statusResponse = await checkJobStatus(jobId);
-        console.log('Polling job status', statusResponse);
-        if (statusResponse.status === 'completed' || statusResponse.status === 'failed') {
-          clearInterval(intervalId);
-          if (statusResponse.status === 'completed') {
-            onSuccess && onSuccess(statusResponse);
-          } else {
-            onError &&
-              onError(
-                new Error(
-                  statusResponse.failReason
-                    ? statusResponse.failReason
-                    : 'Failed to import conversations',
-                ),
-              );
-          }
-        }
-        timeElapsed += pollInterval; // Increment time elapsed by polling interval
-        if (timeElapsed >= timeout) {
-          clearInterval(intervalId);
-          onError && onError(new Error('Polling timed out'));
-        }
-      } catch (error) {
-        clearInterval(intervalId);
-        onError && onError(error);
-      }
-    }, pollInterval);
-  };
-
-  return useMutation<t.TImportStartResponse, unknown, FormData>({
+  return useMutation<t.TImportResponse, unknown, FormData>({
     mutationFn: (formData: FormData) => dataService.importConversationsFile(formData),
     onSuccess: (data, variables, context) => {
+      /* TODO: optimize to return imported conversations and add manually */
       queryClient.invalidateQueries([QueryKeys.allConversations]);
-      // Assuming the job ID is in the response data
-      const jobId = data.jobId;
-      if (jobId) {
-        // Start polling for job status
-        pollJobStatus(
-          jobId,
-          (statusResponse) => {
-            // This is the final success callback when the job is completed
-            queryClient.invalidateQueries([QueryKeys.allConversations]); // Optionally refresh conversations query
-            if (onSuccess) {
-              onSuccess(statusResponse, variables, context);
-            }
-          },
-          (error) => {
-            // This is the error callback for job failure or polling errors
-            if (onError) {
-              onError(error, variables, context);
-            }
-          },
-        );
+      if (onSuccess) {
+        onSuccess(data, variables, context);
       }
     },
     onError: (err, variables, context) => {
@@ -585,6 +771,8 @@ export const useLogoutUserMutation = (
       setDefaultPreset(null);
       queryClient.removeQueries();
       localStorage.removeItem(LocalStorageKeys.LAST_CONVO_SETUP);
+      localStorage.removeItem(`${LocalStorageKeys.LAST_CONVO_SETUP}_0`);
+      localStorage.removeItem(`${LocalStorageKeys.LAST_CONVO_SETUP}_1`);
       localStorage.removeItem(LocalStorageKeys.LAST_MODEL);
       localStorage.removeItem(LocalStorageKeys.LAST_TOOLS);
       localStorage.removeItem(LocalStorageKeys.FILES_TO_DELETE);
@@ -625,6 +813,8 @@ export const useDeleteUserMutation = (
       setDefaultPreset(null);
       queryClient.removeQueries();
       localStorage.removeItem(LocalStorageKeys.LAST_CONVO_SETUP);
+      localStorage.removeItem(`${LocalStorageKeys.LAST_CONVO_SETUP}_0`);
+      localStorage.removeItem(`${LocalStorageKeys.LAST_CONVO_SETUP}_1`);
       localStorage.removeItem(LocalStorageKeys.LAST_MODEL);
       localStorage.removeItem(LocalStorageKeys.LAST_TOOLS);
       localStorage.removeItem(LocalStorageKeys.FILES_TO_DELETE);
@@ -940,5 +1130,30 @@ export const useDeleteAction = (
 
       return options?.onSuccess?.(_data, variables, context);
     },
+  });
+};
+
+/**
+ * Hook for verifying email address
+ */
+export const useVerifyEmailMutation = (
+  options?: t.VerifyEmailOptions,
+): UseMutationResult<t.VerifyEmailResponse, unknown, t.TVerifyEmail, unknown> => {
+  return useMutation({
+    mutationFn: (variables: t.TVerifyEmail) => dataService.verifyEmail(variables),
+    ...(options || {}),
+  });
+};
+
+/**
+ * Hook for resending verficiation email
+ */
+export const useResendVerificationEmail = (
+  options?: t.ResendVerifcationOptions,
+): UseMutationResult<t.VerifyEmailResponse, unknown, t.TResendVerificationEmail, unknown> => {
+  return useMutation({
+    mutationFn: (variables: t.TResendVerificationEmail) =>
+      dataService.resendVerificationEmail(variables),
+    ...(options || {}),
   });
 };

@@ -6,6 +6,8 @@ import type { ContextType } from '~/common';
 import { EndpointsMenu, ModelSpecsMenu, PresetsMenu, HeaderNewChat } from './Menus';
 import ExportAndShareMenu from './ExportAndShareMenu';
 import HeaderOptions from './Input/HeaderOptions';
+import BookmarkMenu from './Menus/BookmarkMenu';
+import AddMultiConvo from './AddMultiConvo';
 import { useMediaQuery } from '~/hooks';
 
 const defaultInterface = getConfigDefaults().interface;
@@ -30,9 +32,18 @@ export default function Header() {
           {modelSpecs?.length > 0 && <ModelSpecsMenu modelSpecs={modelSpecs} />}
           {<HeaderOptions interfaceConfig={interfaceConfig} />}
           {interfaceConfig.presets && <PresetsMenu />}
-          {isSmallScreen && <ExportAndShareMenu className="pl-0" />}
+          {isSmallScreen && (
+            <ExportAndShareMenu
+              isSharedButtonEnabled={startupConfig?.sharedLinksEnabled ?? false}
+              className="pl-0"
+            />
+          )}
+          <BookmarkMenu />
+          <AddMultiConvo />
         </div>
-        {!isSmallScreen && <ExportAndShareMenu />}
+        {!isSmallScreen && (
+          <ExportAndShareMenu isSharedButtonEnabled={startupConfig?.sharedLinksEnabled ?? false} />
+        )}
       </div>
       {/* Empty div for spacing */}
       <div />
