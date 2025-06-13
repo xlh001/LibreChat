@@ -1,10 +1,20 @@
 import { z } from 'zod';
+import type { TUser } from './types';
 import { extractEnvVariable } from './utils';
 
 const BaseOptionsSchema = z.object({
   iconPath: z.string().optional(),
   timeout: z.number().optional(),
   initTimeout: z.number().optional(),
+  /** Controls visibility in chat dropdown menu (MCPSelect) */
+  chatMenu: z.boolean().optional(),
+  /**
+   * Controls server instruction behavior:
+   * - undefined/not set: No instructions included (default)
+   * - true: Use server-provided instructions
+   * - string: Use custom instructions (overrides server-provided)
+   */
+  serverInstructions: z.union([z.boolean(), z.string()]).optional(),
 });
 
 export const StdioOptionsSchema = BaseOptionsSchema.extend({
@@ -51,9 +61,10 @@ export const WebSocketOptionsSchema = BaseOptionsSchema.extend({
   type: z.literal('websocket').optional(),
   url: z
     .string()
-    .url()
+    .transform((val: string) => extractEnvVariable(val))
+    .pipe(z.string().url())
     .refine(
-      (val) => {
+      (val: string) => {
         const protocol = new URL(val).protocol;
         return protocol === 'ws:' || protocol === 'wss:';
       },
@@ -68,9 +79,10 @@ export const SSEOptionsSchema = BaseOptionsSchema.extend({
   headers: z.record(z.string(), z.string()).optional(),
   url: z
     .string()
-    .url()
+    .transform((val: string) => extractEnvVariable(val))
+    .pipe(z.string().url())
     .refine(
-      (val) => {
+      (val: string) => {
         const protocol = new URL(val).protocol;
         return protocol !== 'ws:' && protocol !== 'wss:';
       },
@@ -80,10 +92,29 @@ export const SSEOptionsSchema = BaseOptionsSchema.extend({
     ),
 });
 
+export const StreamableHTTPOptionsSchema = BaseOptionsSchema.extend({
+  type: z.literal('streamable-http'),
+  headers: z.record(z.string(), z.string()).optional(),
+  url: z
+    .string()
+    .transform((val: string) => extractEnvVariable(val))
+    .pipe(z.string().url())
+    .refine(
+      (val: string) => {
+        const protocol = new URL(val).protocol;
+        return protocol !== 'ws:' && protocol !== 'wss:';
+      },
+      {
+        message: 'Streamable HTTP URL must not start with ws:// or wss://',
+      },
+    ),
+});
+
 export const MCPOptionsSchema = z.union([
   StdioOptionsSchema,
   WebSocketOptionsSchema,
   SSEOptionsSchema,
+  StreamableHTTPOptionsSchema,
 ]);
 
 export const MCPServersSchema = z.record(z.string(), MCPOptionsSchema);
@@ -91,33 +122,93 @@ export const MCPServersSchema = z.record(z.string(), MCPOptionsSchema);
 export type MCPOptions = z.infer<typeof MCPOptionsSchema>;
 
 /**
- * Recursively processes an object to replace environment variables in string values
- * @param {MCPOptions} obj - The object to process
- * @param {string} [userId] - The user ID
- * @returns {MCPOptions} - The processed object with environment variables replaced
+ * List of allowed user fields that can be used in MCP environment variables.
+ * These are non-sensitive string/boolean fields from the IUser interface.
  */
-export function processMCPEnv(obj: MCPOptions, userId?: string): MCPOptions {
+const ALLOWED_USER_FIELDS = [
+  'name',
+  'username',
+  'email',
+  'provider',
+  'role',
+  'googleId',
+  'facebookId',
+  'openidId',
+  'samlId',
+  'ldapId',
+  'githubId',
+  'discordId',
+  'appleId',
+  'emailVerified',
+  'twoFactorEnabled',
+  'termsAccepted',
+] as const;
+
+/**
+ * Processes a string value to replace user field placeholders
+ * @param value - The string value to process
+ * @param user - The user object
+ * @returns The processed string with placeholders replaced
+ */
+function processUserPlaceholders(value: string, user?: TUser): string {
+  if (!user || typeof value !== 'string') {
+    return value;
+  }
+
+  for (const field of ALLOWED_USER_FIELDS) {
+    const placeholder = `{{LIBRECHAT_USER_${field.toUpperCase()}}}`;
+    if (value.includes(placeholder)) {
+      const fieldValue = user[field as keyof TUser];
+      const replacementValue = fieldValue != null ? String(fieldValue) : '';
+      value = value.replace(new RegExp(placeholder, 'g'), replacementValue);
+    }
+  }
+
+  return value;
+}
+
+/**
+ * Recursively processes an object to replace environment variables in string values
+ * @param obj - The object to process
+ * @param user - The user object containing all user fields
+ * @returns - The processed object with environment variables replaced
+ */
+export function processMCPEnv(obj: Readonly<MCPOptions>, user?: TUser): MCPOptions {
   if (obj === null || obj === undefined) {
     return obj;
   }
 
-  if ('env' in obj && obj.env) {
+  const newObj: MCPOptions = structuredClone(obj);
+
+  if ('env' in newObj && newObj.env) {
     const processedEnv: Record<string, string> = {};
-    for (const [key, value] of Object.entries(obj.env)) {
-      processedEnv[key] = extractEnvVariable(value);
+    for (const [key, value] of Object.entries(newObj.env)) {
+      let processedValue = extractEnvVariable(value);
+      processedValue = processUserPlaceholders(processedValue, user);
+      processedEnv[key] = processedValue;
     }
-    obj.env = processedEnv;
-  } else if ('headers' in obj && obj.headers) {
+    newObj.env = processedEnv;
+  } else if ('headers' in newObj && newObj.headers) {
     const processedHeaders: Record<string, string> = {};
-    for (const [key, value] of Object.entries(obj.headers)) {
-      if (value === '{{LIBRECHAT_USER_ID}}' && userId != null && userId) {
-        processedHeaders[key] = userId;
+    for (const [key, value] of Object.entries(newObj.headers)) {
+      const userId = user?.id;
+      if (value === '{{LIBRECHAT_USER_ID}}' && userId != null) {
+        processedHeaders[key] = String(userId);
         continue;
       }
-      processedHeaders[key] = extractEnvVariable(value);
+
+      let processedValue = extractEnvVariable(value);
+      processedValue = processUserPlaceholders(processedValue, user);
+      processedHeaders[key] = processedValue;
     }
-    obj.headers = processedHeaders;
+    newObj.headers = processedHeaders;
   }
 
-  return obj;
+  if ('url' in newObj && newObj.url) {
+    let processedUrl = extractEnvVariable(newObj.url);
+    processedUrl = processUserPlaceholders(processedUrl, user);
+    newObj.url = processedUrl;
+  }
+
+  return newObj;
 }

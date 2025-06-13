@@ -2,6 +2,14 @@ const { OllamaClient } = require('./OllamaClient');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const { SplitStreamHandler, CustomOpenAIClient: OpenAI } = require('@librechat/agents');
 const {
+  isEnabled,
+  Tokenizer,
+  createFetch,
+  constructAzureURL,
+  genAzureChatCompletion,
+  createStreamEventHandlers,
+} = require('@librechat/api');
+const {
   Constants,
   ImageDetail,
   ContentTypes,
@@ -17,23 +25,15 @@ const {
   mapModelToAzureConfig,
 } = require('librechat-data-provider');
 const {
-  extractBaseURL,
-  constructAzureURL,
-  getModelMaxTokens,
-  genAzureChatCompletion,
-  getModelMaxOutputTokens,
-} = require('~/utils');
-const {
   truncateText,
   formatMessage,
   CUT_OFF_PROMPT,
   titleInstruction,
   createContextHandlers,
 } = require('./prompts');
+const { extractBaseURL, getModelMaxTokens, getModelMaxOutputTokens } = require('~/utils');
 const { encodeAndFormat } = require('~/server/services/Files/images/encode');
-const { createFetch, createStreamEventHandlers } = require('./generators');
-const { addSpaceIfNeeded, isEnabled, sleep } = require('~/server/utils');
-const Tokenizer = require('~/server/services/Tokenizer');
+const { addSpaceIfNeeded, sleep } = require('~/server/utils');
 const { spendTokens } = require('~/models/spendTokens');
 const { handleOpenAIErrors } = require('./tools/util');
 const { createLLM, RunManager } = require('./llm');
@@ -455,6 +455,9 @@ class OpenAIClient extends BaseClient {
             this.contextHandlers?.processFile(file);
             continue;
           }
+          if (file.metadata?.fileIdentifier) {
+            continue;
+          }
 
           orderedMessages[i].tokenCount += this.calculateImageTokenCost({
             width: file.width,
@@ -472,7 +475,9 @@ class OpenAIClient extends BaseClient {
       promptPrefix = this.augmentedPrompt + promptPrefix;
     }
 
-    if (promptPrefix && this.isOmni !== true) {
+    const noSystemModelRegex = /\b(o1-preview|o1-mini)\b/i.test(this.modelOptions.model);
+
+    if (promptPrefix && !noSystemModelRegex) {
       promptPrefix = `Instructions:\n${promptPrefix.trim()}`;
       instructions = {
         role: 'system',
@@ -500,7 +505,7 @@ class OpenAIClient extends BaseClient {
     };
 
     /** EXPERIMENTAL */
-    if (promptPrefix && this.isOmni === true) {
+    if (promptPrefix && noSystemModelRegex) {
       const lastUserMessageIndex = payload.findLastIndex((message) => message.role === 'user');
       if (lastUserMessageIndex !== -1) {
         if (Array.isArray(payload[lastUserMessageIndex].content)) {
@@ -1224,9 +1229,9 @@ ${convo}
 
         opts.baseURL = this.langchainProxy
           ? constructAzureURL({
-            baseURL: this.langchainProxy,
-            azureOptions: this.azure,
-          })
+              baseURL: this.langchainProxy,
+              azureOptions: this.azure,
+            })
           : this.azureEndpoint.split(/(?<!\/)\/(chat|completion)\//)[0];
 
         opts.defaultQuery = { 'api-version': this.azure.azureOpenAIApiVersion };
@@ -1278,6 +1283,14 @@ ${convo}
         modelOptions.messages[0]?.role === 'system'
       ) {
         modelOptions.messages[0].role = 'user';
+      }
+
+      if (
+        (this.options.endpoint === EModelEndpoint.openAI ||
+          this.options.endpoint === EModelEndpoint.azureOpenAI) &&
+        modelOptions.stream === true
+      ) {
+        modelOptions.stream_options = { include_usage: true };
       }
 
       if (this.options.addParams && typeof this.options.addParams === 'object') {
@@ -1382,12 +1395,6 @@ ${convo}
           ...modelOptions,
           stream: true,
         };
-        if (
-          this.options.endpoint === EModelEndpoint.openAI ||
-          this.options.endpoint === EModelEndpoint.azureOpenAI
-        ) {
-          params.stream_options = { include_usage: true };
-        }
         const stream = await openai.beta.chat.completions
           .stream(params)
           .on('abort', () => {
