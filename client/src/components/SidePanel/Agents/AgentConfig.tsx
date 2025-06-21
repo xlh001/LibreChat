@@ -1,17 +1,17 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { Controller, useWatch, useFormContext } from 'react-hook-form';
-import { QueryKeys, EModelEndpoint, AgentCapabilities } from 'librechat-data-provider';
-import type { TPlugin } from 'librechat-data-provider';
+import { EModelEndpoint, AgentCapabilities } from 'librechat-data-provider';
 import type { AgentForm, AgentPanelProps, IconComponentTypes } from '~/common';
 import { cn, defaultTextProps, removeFocusOutlines, getEndpointField, getIconKey } from '~/utils';
-import { useToastContext, useFileMapContext } from '~/Providers';
+import { useToastContext, useFileMapContext, useAgentPanelContext } from '~/Providers';
 import Action from '~/components/SidePanel/Builder/Action';
 import { ToolSelectDialog } from '~/components/Tools';
 import { icons } from '~/hooks/Endpoint/Icons';
 import { processAgentOption } from '~/utils';
+import Instructions from './Instructions';
 import AgentAvatar from './AgentAvatar';
 import FileContext from './FileContext';
+import SearchForm from './Search/Form';
 import { useLocalize } from '~/hooks';
 import FileSearch from './FileSearch';
 import Artifacts from './Artifacts';
@@ -27,23 +27,16 @@ const inputClass = cn(
 );
 
 export default function AgentConfig({
-  setAction,
-  actions = [],
   agentsConfig,
   createMutation,
-  setActivePanel,
   endpointsConfig,
-}: AgentPanelProps) {
-  const fileMap = useFileMapContext();
-  const queryClient = useQueryClient();
-
-  const allTools = queryClient.getQueryData<TPlugin[]>([QueryKeys.tools]) ?? [];
-  const { showToast } = useToastContext();
+}: Pick<AgentPanelProps, 'agentsConfig' | 'createMutation' | 'endpointsConfig'>) {
   const localize = useLocalize();
-
-  const [showToolDialog, setShowToolDialog] = useState(false);
-
+  const fileMap = useFileMapContext();
+  const { showToast } = useToastContext();
   const methods = useFormContext<AgentForm>();
+  const [showToolDialog, setShowToolDialog] = useState(false);
+  const { actions, setAction, groupedTools: allTools, setActivePanel } = useAgentPanelContext();
 
   const { control } = methods;
   const provider = useWatch({ control, name: 'provider' });
@@ -70,6 +63,10 @@ export default function AgentConfig({
   );
   const fileSearchEnabled = useMemo(
     () => agentsConfig?.capabilities?.includes(AgentCapabilities.file_search) ?? false,
+    [agentsConfig],
+  );
+  const webSearchEnabled = useMemo(
+    () => agentsConfig?.capabilities?.includes(AgentCapabilities.web_search) ?? false,
     [agentsConfig],
   );
   const codeEnabled = useMemo(
@@ -166,6 +163,20 @@ export default function AgentConfig({
     Icon = icons[iconKey];
   }
 
+  // Determine what to show
+  const selectedToolIds = tools ?? [];
+  const visibleToolIds = new Set(selectedToolIds);
+
+  // Check what group parent tools should be shown if any subtool is present
+  Object.entries(allTools).forEach(([toolId, toolObj]) => {
+    if (toolObj.tools?.length) {
+      // if any subtool of this group is selected, ensure group parent tool rendered
+      if (toolObj.tools.some((st) => selectedToolIds.includes(st.tool_id))) {
+        visibleToolIds.add(toolId);
+      }
+    }
+  });
+
   return (
     <>
       <div className="h-auto bg-white px-4 pt-3 dark:bg-transparent">
@@ -228,39 +239,7 @@ export default function AgentConfig({
           />
         </div>
         {/* Instructions */}
-        <div className="mb-4">
-          <label className={labelClass} htmlFor="instructions">
-            {localize('com_ui_instructions')}
-          </label>
-          <Controller
-            name="instructions"
-            control={control}
-            render={({ field, fieldState: { error } }) => (
-              <>
-                <textarea
-                  {...field}
-                  value={field.value ?? ''}
-                  // maxLength={32768}
-                  className={cn(inputClass, 'min-h-[100px] resize-y')}
-                  id="instructions"
-                  placeholder={localize('com_agents_instructions_placeholder')}
-                  rows={3}
-                  aria-label="Agent instructions"
-                  aria-required="true"
-                  aria-invalid={error ? 'true' : 'false'}
-                />
-                {error && (
-                  <span
-                    className="text-sm text-red-500 transition duration-300 ease-in-out"
-                    role="alert"
-                  >
-                    {localize('com_ui_field_required')}
-                  </span>
-                )}
-              </>
-            )}
-          />
-        </div>
+        <Instructions />
         {/* Model and Provider */}
         <div className="mb-4">
           <label className={labelClass} htmlFor="provider">
@@ -288,13 +267,19 @@ export default function AgentConfig({
             </div>
           </button>
         </div>
-        {(codeEnabled || fileSearchEnabled || artifactsEnabled || ocrEnabled) && (
+        {(codeEnabled ||
+          fileSearchEnabled ||
+          artifactsEnabled ||
+          ocrEnabled ||
+          webSearchEnabled) && (
           <div className="mb-4 flex w-full flex-col items-start gap-3">
             <label className="text-token-text-primary block font-medium">
               {localize('com_assistants_capabilities')}
             </label>
             {/* Code Execution */}
             {codeEnabled && <CodeForm agent_id={agent_id} files={code_files} />}
+            {/* Web Search */}
+            {webSearchEnabled && <SearchForm />}
             {/* File Context (OCR) */}
             {ocrEnabled && <FileContext agent_id={agent_id} files={context_files} />}
             {/* Artifacts */}
@@ -310,28 +295,37 @@ export default function AgentConfig({
               ${toolsEnabled === true && actionsEnabled === true ? ' + ' : ''}
               ${actionsEnabled === true ? localize('com_assistants_actions') : ''}`}
           </label>
-          <div className="space-y-2">
-            {tools?.map((func, i) => (
-              <AgentTool
-                key={`${func}-${i}-${agent_id}`}
-                tool={func}
-                allTools={allTools}
-                agent_id={agent_id}
-              />
-            ))}
-            {actions
-              .filter((action) => action.agent_id === agent_id)
-              .map((action, i) => (
-                <Action
-                  key={i}
-                  action={action}
-                  onClick={() => {
-                    setAction(action);
-                    setActivePanel(Panel.actions);
-                  }}
-                />
-              ))}
-            <div className="flex space-x-2">
+          <div>
+            <div className="mb-1">
+              {/* // Render all visible IDs (including groups with subtools selected) */}
+              {[...visibleToolIds].map((toolId, i) => {
+                const tool = allTools[toolId];
+                if (!tool) return null;
+                return (
+                  <AgentTool
+                    key={`${toolId}-${i}-${agent_id}`}
+                    tool={toolId}
+                    allTools={allTools}
+                    agent_id={agent_id}
+                  />
+                );
+              })}
+            </div>
+            <div className="flex flex-col gap-1">
+              {(actions ?? [])
+                .filter((action) => action.agent_id === agent_id)
+                .map((action, i) => (
+                  <Action
+                    key={i}
+                    action={action}
+                    onClick={() => {
+                      setAction(action);
+                      setActivePanel(Panel.actions);
+                    }}
+                  />
+                ))}
+            </div>
+            <div className="mt-2 flex space-x-2">
               {(toolsEnabled ?? false) && (
                 <button
                   type="button"
@@ -360,11 +354,12 @@ export default function AgentConfig({
             </div>
           </div>
         </div>
+        {/* MCP Section */}
+        {/* <MCPSection /> */}
       </div>
       <ToolSelectDialog
         isOpen={showToolDialog}
         setIsOpen={setShowToolDialog}
-        toolsFormKey="tools"
         endpoint={EModelEndpoint.agents}
       />
     </>
