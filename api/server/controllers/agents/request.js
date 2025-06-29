@@ -1,3 +1,5 @@
+const { sendEvent } = require('@librechat/api');
+const { logger } = require('@librechat/data-schemas');
 const { Constants } = require('librechat-data-provider');
 const {
   handleAbortError,
@@ -5,9 +7,7 @@ const {
   cleanupAbortController,
 } = require('~/server/middleware');
 const { disposeClient, clientRegistry, requestDataMap } = require('~/server/cleanup');
-const { sendMessage } = require('~/server/utils');
 const { saveMessage } = require('~/models');
-const { logger } = require('~/config');
 
 const AgentController = async (req, res, next, initializeClient, addTitle) => {
   let {
@@ -206,7 +206,7 @@ const AgentController = async (req, res, next, initializeClient, addTitle) => {
       // Create a new response object with minimal copies
       const finalResponse = { ...response };
 
-      sendMessage(res, {
+      sendEvent(res, {
         final: true,
         conversation,
         title: conversation.title,
@@ -228,7 +228,7 @@ const AgentController = async (req, res, next, initializeClient, addTitle) => {
     // Save user message if needed
     if (!client.skipSaveUserMessage) {
       await saveMessage(req, userMessage, {
-        context: 'api/server/controllers/agents/request.js - don\'t skip saving user message',
+        context: "api/server/controllers/agents/request.js - don't skip saving user message",
       });
     }
 
@@ -259,6 +259,7 @@ const AgentController = async (req, res, next, initializeClient, addTitle) => {
       sender,
       messageId: responseMessageId,
       parentMessageId: overrideParentMessageId ?? userMessageId ?? parentMessageId,
+      userMessageId,
     })
       .catch((err) => {
         logger.error('[api/server/controllers/agents/request] Error in `handleAbortError`', err);

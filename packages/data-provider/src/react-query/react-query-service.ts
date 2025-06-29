@@ -12,39 +12,6 @@ import { QueryKeys } from '../keys';
 import * as s from '../schemas';
 import * as t from '../types';
 
-export const useAbortRequestWithMessage = (): UseMutationResult<
-  void,
-  Error,
-  { endpoint: string; abortKey: string; message: string }
-> => {
-  const queryClient = useQueryClient();
-  return useMutation(
-    ({ endpoint, abortKey, message }) =>
-      dataService.abortRequestWithMessage(endpoint, abortKey, message),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries([QueryKeys.balance]);
-      },
-    },
-  );
-};
-
-export const useGetMessagesByConvoId = <TData = s.TMessage[]>(
-  id: string,
-  config?: UseQueryOptions<s.TMessage[], unknown, TData>,
-): QueryObserverResult<TData> => {
-  return useQuery<s.TMessage[], unknown, TData>(
-    [QueryKeys.messages, id],
-    () => dataService.getMessagesByConvoId(id),
-    {
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchOnMount: false,
-      ...config,
-    },
-  );
-};
-
 export const useGetSharedMessages = (
   shareId: string,
   config?: UseQueryOptions<t.TSharedMessagesResponse>,
@@ -360,6 +327,22 @@ export const useGetCustomConfigSpeechQuery = (
       refetchOnReconnect: false,
       refetchOnMount: false,
       ...config,
+    },
+  );
+};
+
+export const useUpdateFeedbackMutation = (
+  conversationId: string,
+  messageId: string,
+): UseMutationResult<t.TUpdateFeedbackResponse, Error, t.TUpdateFeedbackRequest> => {
+  const queryClient = useQueryClient();
+  return useMutation(
+    (payload: t.TUpdateFeedbackRequest) =>
+      dataService.updateFeedback(conversationId, messageId, payload),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries([QueryKeys.messages, messageId]);
+      },
     },
   );
 };

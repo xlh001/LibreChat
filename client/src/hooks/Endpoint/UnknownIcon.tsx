@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { EModelEndpoint, KnownEndpoints } from 'librechat-data-provider';
-import { CustomMinimalIcon } from '~/components/svg';
+import { CustomMinimalIcon, XAIcon } from '~/components/svg';
 import { IconContext } from '~/common';
 import { cn } from '~/utils';
 
@@ -10,17 +10,19 @@ const knownEndpointAssets = {
   [KnownEndpoints.cohere]: '/assets/cohere.png',
   [KnownEndpoints.deepseek]: '/assets/deepseek.svg',
   [KnownEndpoints.fireworks]: '/assets/fireworks.png',
+  [KnownEndpoints.google]: '/assets/google.svg',
   [KnownEndpoints.groq]: '/assets/groq.png',
   [KnownEndpoints.huggingface]: '/assets/huggingface.svg',
   [KnownEndpoints.mistral]: '/assets/mistral.png',
   [KnownEndpoints.mlx]: '/assets/mlx.png',
   [KnownEndpoints.ollama]: '/assets/ollama.png',
+  [KnownEndpoints.openai]: '/assets/openai.svg',
   [KnownEndpoints.openrouter]: '/assets/openrouter.png',
   [KnownEndpoints.perplexity]: '/assets/perplexity.png',
+  [KnownEndpoints.qwen]: '/assets/qwen.svg',
   [KnownEndpoints.shuttleai]: '/assets/shuttleai.png',
   [KnownEndpoints['together.ai']]: '/assets/together.png',
   [KnownEndpoints.unify]: '/assets/unify.webp',
-  [KnownEndpoints.xai]: '/assets/xai.svg',
 };
 
 const knownEndpointClasses = {
@@ -29,9 +31,6 @@ const knownEndpointClasses = {
   },
   [KnownEndpoints.xai]: {
     [IconContext.landing]: 'p-2',
-    [IconContext.menuItem]: 'bg-white',
-    [IconContext.message]: 'bg-white',
-    [IconContext.nav]: 'bg-white',
   },
 };
 
@@ -71,6 +70,18 @@ function UnknownIcon({
   }
 
   const currentEndpoint = endpoint.toLowerCase();
+
+  if (currentEndpoint === KnownEndpoints.xai) {
+    return (
+      <XAIcon
+        className={getKnownClass({
+          currentEndpoint,
+          context: context,
+          className,
+        })}
+      />
+    );
+  }
 
   if (iconURL) {
     return <img className={className} src={iconURL} alt={`${endpoint} Icon`} />;

@@ -63,15 +63,15 @@ class BaseClient {
   }
 
   setOptions() {
-    throw new Error('Method \'setOptions\' must be implemented.');
+    throw new Error("Method 'setOptions' must be implemented.");
   }
 
   async getCompletion() {
-    throw new Error('Method \'getCompletion\' must be implemented.');
+    throw new Error("Method 'getCompletion' must be implemented.");
   }
 
   async sendCompletion() {
-    throw new Error('Method \'sendCompletion\' must be implemented.');
+    throw new Error("Method 'sendCompletion' must be implemented.");
   }
 
   getSaveOptions() {
@@ -237,11 +237,11 @@ class BaseClient {
     const userMessage = opts.isEdited
       ? this.currentMessages[this.currentMessages.length - 2]
       : this.createUserMessage({
-        messageId: userMessageId,
-        parentMessageId,
-        conversationId,
-        text: message,
-      });
+          messageId: userMessageId,
+          parentMessageId,
+          conversationId,
+          text: message,
+        });
 
     if (typeof opts?.getReqData === 'function') {
       opts.getReqData({
@@ -792,7 +792,8 @@ class BaseClient {
 
     userMessage.tokenCount = userMessageTokenCount;
     /*
-      Note: `AskController` saves the user message, so we update the count of its `userMessage` reference
+      Note: `AgentController` saves the user message if not saved here
+      (noted by `savedMessageIds`), so we update the count of its `userMessage` reference
     */
     if (typeof opts?.getReqData === 'function') {
       opts.getReqData({
@@ -801,7 +802,8 @@ class BaseClient {
     }
     /*
       Note: we update the user message to be sure it gets the calculated token count;
-      though `AskController` saves the user message, EditController does not
+      though `AgentController` saves the user message if not saved here
+      (noted by `savedMessageIds`), EditController does not
     */
     await userMessagePromise;
     await this.updateMessageInDatabase({
