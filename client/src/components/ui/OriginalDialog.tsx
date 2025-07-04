@@ -4,16 +4,26 @@ import { X } from 'lucide-react';
 import { cn } from '~/utils';
 
 interface OGDialogProps extends DialogPrimitive.DialogProps {
-  triggerRef?: React.RefObject<HTMLButtonElement>;
+  triggerRef?: React.RefObject<HTMLButtonElement | HTMLInputElement | null>;
+  triggerRefs?: React.RefObject<HTMLButtonElement | HTMLInputElement | null>[];
 }
 
 const Dialog = React.forwardRef<HTMLDivElement, OGDialogProps>(
-  ({ children, triggerRef, onOpenChange, ...props }) => {
+  ({ children, triggerRef, triggerRefs, onOpenChange, ...props }, _ref) => {
     const handleOpenChange = (open: boolean) => {
       if (!open && triggerRef?.current) {
         setTimeout(() => {
           triggerRef.current?.focus();
         }, 0);
+      }
+      if (triggerRefs?.length) {
+        triggerRefs.forEach((ref) => {
+          if (ref?.current) {
+            setTimeout(() => {
+              ref.current?.focus();
+            }, 0);
+          }
+        });
       }
       onOpenChange?.(open);
     };
@@ -32,7 +42,7 @@ const DialogPortal = DialogPrimitive.Portal;
 
 const DialogClose = DialogPrimitive.Close;
 
-const DialogOverlay = React.forwardRef<
+export const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
@@ -71,6 +81,7 @@ const DialogContent = React.forwardRef<
       {showCloseButton && (
         <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-ring-primary ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
           <X className="h-4 w-4" />
+          {/* eslint-disable-next-line i18next/no-literal-string */}
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
       )}

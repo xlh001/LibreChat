@@ -7,7 +7,7 @@ import useLocalize from '~/hooks/useLocalize';
 import { OGDialog } from '~/components/ui';
 
 interface DragDropModalProps {
-  onOptionSelect: (option: string | undefined) => void;
+  onOptionSelect: (option: EToolResources | undefined) => void;
   files: File[];
   isVisible: boolean;
   setShowModal: (showModal: boolean) => void;
@@ -34,7 +34,7 @@ const DragDropModal = ({ onOptionSelect, setShowModal, files, isVisible }: DragD
         label: localize('com_ui_upload_image_input'),
         value: undefined,
         icon: <ImageUpIcon className="icon-md" />,
-        condition: files.every((file) => file.type.startsWith('image/')),
+        condition: files.every((file) => file.type?.startsWith('image/')),
       },
     ];
     for (const capability of capabilities) {
