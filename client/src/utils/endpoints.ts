@@ -59,7 +59,7 @@ export const getAvailableEndpoints = (
 
 /** Get the specified field from the endpoint config */
 export function getEndpointField<K extends keyof t.TConfig>(
-  endpointsConfig: t.TEndpointsConfig | undefined,
+  endpointsConfig: t.TEndpointsConfig | undefined | null,
   endpoint: EModelEndpoint | string | null | undefined,
   property: K,
 ): t.TConfig[K] | undefined {
@@ -203,6 +203,17 @@ export function getDefaultModelSpec(startupConfig?: t.TStartupConfig) {
   return list?.find((spec) => spec.name === lastConversationSetup.spec);
 }
 
+export function getModelSpecPreset(modelSpec?: t.TModelSpec) {
+  if (!modelSpec) {
+    return;
+  }
+  return {
+    ...modelSpec.preset,
+    spec: modelSpec.name,
+    iconURL: getModelSpecIconURL(modelSpec),
+  };
+}
+
 /** Gets the default spec iconURL by order or definition.
  *
  * First, the admin defined default, then last selected spec, followed by first spec
@@ -235,7 +246,7 @@ export function getIconKey({
   endpointIconURL: iconURL,
 }: {
   endpoint?: string | null;
-  endpointsConfig?: t.TEndpointsConfig;
+  endpointsConfig?: t.TEndpointsConfig | null;
   endpointType?: string | null;
   endpointIconURL?: string;
 }): keyof IconsRecord {
